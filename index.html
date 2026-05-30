@@ -52,17 +52,17 @@
                 <div class="grid grid-cols-1 gap-3 pt-2 border-t border-gray-700/50">
                     <label class="flex items-center gap-3 p-3 bg-gray-900 rounded-lg text-xs text-gray-300 cursor-pointer hover:bg-gray-750 transition">
                         <input type="checkbox" id="dahi_intake" class="w-4 h-4 rounded text-emerald-500 focus:ring-0">
-                        <span>Had Dahi Today Daily Culture/Probiotic</span>
+                        <span>Had Dahi Today</span>
                     </label>
                     <label class="flex items-center gap-3 p-3 bg-emerald-950/30 border border-emerald-900/40 rounded-lg text-xs text-emerald-300 cursor-pointer hover:bg-emerald-950/50 transition">
                         <input type="checkbox" id="protein_checked" class="w-4 h-4 rounded text-emerald-500 focus:ring-0">
-                        <span>Anchored meals with clean protein (Eggs/Paneer/Tofu)</span>
+                        <span>Protien intake (Eggs/Paneer/Tofu)</span>
                     </label>
                 </div>
             </div>
 
             <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 space-y-4">
-                <h2 class="text-md font-bold text-emerald-400 border-b border-gray-700 pb-2">🏃‍♂️ Physical Exercise & Activity</h2>
+                <h2 class="text-md font-bold text-emerald-400 border-b border-gray-700 pb-2">🏃‍♂️ Physical Activity</h2>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Steps Count</label>
@@ -91,28 +91,29 @@
                 <h2 class="text-md font-bold text-emerald-400 border-b border-gray-700 pb-2">🧘‍♂️ Sleep & Mental Well-being</h2>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Total Night Sleep (Hrs)</label>
-                        <input type="number" step="0.1" id="total_night_sleep_hours" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                        <label class="block text-xs text-gray-400 mb-1">Sleep time</label>
+                        <input type="time" id="sleep_time_picker" step="1800" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Afternoon Nap (Mins)</label>
-                        <input type="number" id="afternoon_nap_mins" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Pooja / Jal Counter</label>
-                        <input type="number" id="pooja_jal_count" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Book Reading (Mins)</label>
-                        <input type="number" id="book_reading_mins" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                        <label class="block text-xs text-gray-400 mb-1">Wake up time</label>
+                        <input type="time" id="wakeup_time_picker" step="1800" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
                     </div>
                     <div>
                         <label class="block text-xs text-amber-400 mb-1">YouTube / Screen Time (Mins)</label>
                         <input type="number" id="screen_time_mins" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
                     </div>
-                    <div class="flex items-center pt-4">
-                        <label class="flex items-center gap-2 text-xs text-gray-300"><input type="checkbox" id="morning_breathing" class="w-4 h-4"> Morning Pranayam</label>
-                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-700/50">
+                    <label class="flex items-center gap-2 text-xs text-gray-300 p-2 bg-gray-900 rounded cursor-pointer">
+                        <input type="checkbox" id="pooja_jal_box" class="w-4 h-4"> Pooja / Jal Done
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-gray-300 p-2 bg-gray-900 rounded cursor-pointer">
+                        <input type="checkbox" id="book_reading_box" class="w-4 h-4"> Book Reading Done
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-gray-300 p-2 bg-gray-900 rounded cursor-pointer">
+                        <input type="checkbox" id="morning_breathing" class="w-4 h-4"> Morning Pranayam
+                    </label>
                 </div>
             </div>
 
@@ -152,7 +153,7 @@
     </main>
 
     <script>
-        // --- PROVIDE YOUR SUPABASE CONFIG HERE ---
+        // --- SECURE SUPABASE CONFIGURATION ---
         const SUPABASE_URL = "https://uwnhvawonyfoojgzkkyd.supabase.co/rest/v1/";
         const SUPABASE_ANON_KEY = "sb_publishable_gBpYH561QhhJH2J14CGu0g_8y3I2zVw";
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -168,6 +169,13 @@
 
         let weightChart, exerciseChart;
 
+        // Helper to safely convert text hours or integers into checkbox equivalents
+        function truthyCheckbox(val) {
+            if (!val) return false;
+            if (typeof val === 'number' && val > 0) return true;
+            return val === true || val === 'true';
+        }
+
         async function loadDayData() {
             const selectedDate = datePicker.value;
             let { data, error } = await supabase
@@ -177,17 +185,25 @@
                 .single();
 
             if (data) {
-                const fields = ['water_liters', 'roti_count', 'bread_slices', 'steps_count', 'swim_mins', 'plank_seconds', 'crunches_count', 'sit_ups_count', 'total_night_sleep_hours', 'afternoon_nap_mins', 'pooja_jal_count', 'book_reading_mins', 'screen_time_mins', 'weight_kg', 'body_fat_percentage'];
-                fields.forEach(f => {
+                // Numeric Fields
+                const numericFields = ['water_liters', 'roti_count', 'bread_slices', 'steps_count', 'swim_mins', 'plank_seconds', 'crunches_count', 'sit_ups_count', 'screen_time_mins', 'weight_kg', 'body_fat_percentage'];
+                numericFields.forEach(f => {
                     const el = document.getElementById(f);
                     if(el) el.value = data[f] ?? '';
                 });
                 
-                const checks = ['dahi_intake', 'protein_checked', 'morning_breathing'];
-                checks.forEach(c => {
-                    const el = document.getElementById(c);
-                    if(el) el.checked = data[c] ?? false;
-                });
+                // Time Pickers (Fallback cleanly if stored as simple numbers or empty)
+                document.getElementById('sleep_time_picker').value = typeof data.total_night_sleep_hours === 'string' ? data.total_night_sleep_hours.substring(0,5) : '';
+                document.getElementById('wakeup_time_picker').value = typeof data.afternoon_nap_mins === 'string' ? data.afternoon_nap_mins.substring(0,5) : '';
+
+                // Simple Checkboxes
+                document.getElementById('dahi_intake').checked = truthyCheckbox(data.dahi_intake);
+                document.getElementById('protein_checked').checked = truthyCheckbox(data.protein_checked);
+                document.getElementById('morning_breathing').checked = truthyCheckbox(data.morning_breathing);
+                
+                // Converted Checkboxes (Safely map legacy database integer flags to checkboxes)
+                document.getElementById('pooja_jal_box').checked = truthyCheckbox(data.pooja_jal_count);
+                document.getElementById('book_reading_box').checked = truthyCheckbox(data.book_reading_mins);
             } else {
                 form.reset();
                 datePicker.value = selectedDate;
@@ -198,6 +214,7 @@
             e.preventDefault();
             const targetDate = datePicker.value;
             
+            // Build uniform submission map matching existing database columns
             const payload = {
                 log_date: targetDate,
                 water_liters: parseFloat(document.getElementById('water_liters').value) || 0,
@@ -208,15 +225,19 @@
                 plank_seconds: parseInt(document.getElementById('plank_seconds').value) || 0,
                 crunches_count: parseInt(document.getElementById('crunches_count').value) || 0,
                 sit_ups_count: parseInt(document.getElementById('sit_ups_count').value) || 0,
-                total_night_sleep_hours: parseFloat(document.getElementById('total_night_sleep_hours').value) || 0,
-                afternoon_nap_mins: parseInt(document.getElementById('afternoon_nap_mins').value) || 0,
-                pooja_jal_count: parseInt(document.getElementById('pooja_jal_count').value) || 0,
-                book_reading_mins: parseInt(document.getElementById('book_reading_mins').value) || 0,
                 screen_time_mins: parseInt(document.getElementById('screen_time_mins').value) || 0,
                 
+                // Keep database types accurate by saving text-time vectors or fallbacks
+                total_night_sleep_hours: document.getElementById('sleep_time_picker').value || null,
+                afternoon_nap_mins: document.getElementById('wakeup_time_picker').value || null,
+
                 dahi_intake: document.getElementById('dahi_intake').checked,
                 protein_checked: document.getElementById('protein_checked').checked,
                 morning_breathing: document.getElementById('morning_breathing').checked,
+                
+                // Convert current true/false flags back to numeric integers for legacy column sync
+                pooja_jal_count: document.getElementById('pooja_jal_box').checked ? 1 : 0,
+                book_reading_mins: document.getElementById('book_reading_box').checked ? 15 : 0
             };
 
             const w = document.getElementById('weight_kg').value;
@@ -297,4 +318,23 @@
         }
 
         async function exportToExcel() {
-            let { data } = await supabase.from
+            let { data } = await supabase.from('health_dashboard').select('*').order('log_date', { ascending: false });
+            if(!data || data.length === 0) return alert("No data recorded to export.");
+            const headers = Object.keys(data[0]).join(",");
+            const rows = data.map(row => Object.values(row).map(val => typeof val === 'string' && val.includes(',') ? `"${val}"` : val).join(","));
+            const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Health_Logs_Export_${new Date().toLocaleDateString()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        updateCountdown();
+        loadDayData();
+        renderCharts();
+    </script>
+</body>
+</html>
