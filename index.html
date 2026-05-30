@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>39th Birthday Health Dashboard</title>
+    <!-- Tailwind CSS for clean, modern mobile styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans pb-10">
+
+    <!-- Header Section -->
+    <header class="bg-gray-800 p-5 shadow-md border-b border-gray-700 text-center">
+        <h1 class="text-2xl font-bold text-emerald-400">Road to 80 Kgs</h1>
+        <p class="text-sm text-gray-400 mt-1">Consistency Over Perfection</p>
+        
+        <!-- Countdown Timer to Sept 29, 2026 -->
+        <div class="mt-4 bg-gray-900/60 rounded-lg p-3 inline-block border border-gray-700">
+            <span id="countdown" class="text-xl font-mono text-amber-400 font-bold">---</span>
+            <span class="text-xs text-gray-400 block mt-1">Days until your 39th Birthday Milestone</span>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 mt-6 space-y-6">
+
+        <!-- Quick Entry Form -->
+        <section class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-lg font-semibold mb-4 text-emerald-400 flex items-center gap-2">
+                <span>📝</span> Nightly Log (60-Sec Check-in)
+            </h2>
+            <form id="healthForm" class="space-y-4">
+                <!-- Weight Input (Optional Daily/Weekly) -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Current Weight (kg)</label>
+                    <input type="number" id="weight" step="0.1" placeholder="e.g., 96.2" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Steps Input -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Steps (from iPhone Health)</label>
+                    <input type="number" id="steps" required placeholder="e.g., 5500" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Screen Time Input -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">YouTube / Screen Time (Hours)</label>
+                    <input type="number" id="screenTime" step="0.1" required placeholder="e.g., 2.5" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <!-- Water Intake -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Water Intake</label>
+                    <select id="water" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500">
+                        <option value="1">1 Liter (Hydrate more!)</option>
+                        <option value="2">2 Liters (Getting there)</option>
+                        <option value="3" selected>3 Liters (Optimal Target)</option>
+                        <option value="4">4 Liters (Excellent)</option>
+                    </select>
+                </div>
+
+                <!-- Midnight Snacking Toggle -->
+                <div class="flex items-center justify-between p-3 bg-gray-900 rounded-lg border border-gray-700">
+                    <div>
+                        <span class="block text-sm font-medium">Midnight Snacking</span>
+                        <span class="text-xs text-gray-400">Did you eat after dinner last night?</span>
+                    </div>
+                    <input type="checkbox" id="snacking" class="w-6 h-6 rounded text-emerald-500 focus:ring-0 bg-gray-800 border-gray-700">
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-bold py-3 rounded-lg transition duration-200 shadow-md">
+                    Save Daily Entry
+                </button>
+            </form>
+        </section>
+
+        <!-- Dynamic History Logs -->
+        <section class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-lg font-semibold mb-3 text-emerald-400">📊 Recent Progress Logs</h2>
+            <div id="logsContainer" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                <!-- Logs dynamically inserted here -->
+                <p class="text-gray-500 text-sm italic text-center py-4">No entries logged yet. Start tonight!</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- App Logic -->
+    <script>
+        // 1. Calculate Countdown to Sept 29, 2026
+        function updateCountdown() {
+            const targetDate = new Date('2026-09-29T00:00:00');
+            const now = new Date();
+            const difference = targetDate - now;
+
+            if (difference > 0) {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                document.getElementById('countdown').innerText = `${days} Days Left`;
+            } else {
+                document.getElementById('countdown').innerText = "Happy 39th Birthday! 🎂";
+            }
+        }
+
+        // 2. LocalStorage Data Management
+        const form = document.getElementById('healthForm');
+        const logsContainer = document.getElementById('logsContainer');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const entry = {
+                date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+                weight: document.getElementById('weight').value || 'N/A',
+                steps: parseInt(document.getElementById('steps').value),
+                screenTime: parseFloat(document.getElementById('screenTime').value),
+                water: document.getElementById('water').value,
+                snacking: document.getElementById('snacking').checked
+            };
+
+            // Save to array in localStorage
+            let history = JSON.parse(localStorage.getItem('healthHistory')) || [];
+            // Keep entries unique by date
+            history = history.filter(h => h.date !== entry.date);
+            history.unshift(entry); // Add new entry to the top
+            localStorage.setItem('healthHistory', JSON.stringify(history));
+
+            form.reset();
+            document.getElementById('water').value = "3"; // Reset to default target
+            renderLogs();
+        });
+
+        function renderLogs() {
+            const history = JSON.parse(localStorage.getItem('healthHistory')) || [];
+            if (history.length === 0) return;
+
+            logsContainer.innerHTML = history.map(entry => `
+                <div class="bg-gray-900 p-3 rounded-lg border ${entry.steps < 4000 ? 'border-red-500/40' : 'border-gray-700'} text-sm space-y-1">
+                    <div class="flex justify-between font-bold text-gray-300 border-b border-gray-800 pb-1 mb-1">
+                        <span>📅 ${entry.date}</span>
+                        <span class="${entry.snacking ? 'text-rose-400' : 'text-emerald-400'}">
+                            ${entry.snacking ? '🌙 Snacked' : '🔥 Clean Night'}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-y-1 text-xs text-gray-400">
+                        <div>Weight: <span class="text-gray-200 font-medium">${entry.weight} kg</span></div>
+                        <div>Steps: <span class="text-gray-200 font-medium ${entry.steps >= 7000 ? 'text-emerald-400' : ''}">${entry.steps.toLocaleString()}</span></div>
+                        <div>Screen Time: <span class="text-gray-200 font-medium">${entry.screenTime} hrs</span></div>
+                        <div>Water: <span class="text-gray-200 font-medium">${entry.water}L</span></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize App
+        updateCountdown();
+        renderLogs();
+    </script>
+</body>
+</html>
