@@ -13,8 +13,7 @@
     <header class="bg-gray-800 border-b border-gray-700 p-4 sticky top-0 z-50 shadow-md">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-xl font-bold text-emerald-400">Target 80 Kgs Dashboard</h1>
-                <p class="text-xs text-gray-400">Milestone: 89 kg by 39th Birthday (Sept 29, 2026)</p>
+                <h1 class="text-xl font-bold text-emerald-400">Target 89 Kg by 29-Sep</h1>
             </div>
             <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <div class="relative bg-gray-700 border border-gray-600 rounded-lg p-2 text-white flex items-center min-w-[150px]">
@@ -67,6 +66,10 @@
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Steps Count</label>
                         <input type="number" id="steps_count" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Stairs Count</label>
+                        <input type="number" id="stairs_count" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
                     </div>
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Swim Mins</label>
@@ -169,7 +172,6 @@
 
         let weightChart, exerciseChart;
 
-        // Helper to safely convert text hours or integers into checkbox equivalents
         function truthyCheckbox(val) {
             if (!val) return false;
             if (typeof val === 'number' && val > 0) return true;
@@ -185,23 +187,19 @@
                 .single();
 
             if (data) {
-                // Numeric Fields
-                const numericFields = ['water_liters', 'roti_count', 'bread_slices', 'steps_count', 'swim_mins', 'plank_seconds', 'crunches_count', 'sit_ups_count', 'screen_time_mins', 'weight_kg', 'body_fat_percentage'];
+                const numericFields = ['water_liters', 'roti_count', 'bread_slices', 'steps_count', 'stairs_count', 'swim_mins', 'plank_seconds', 'crunches_count', 'sit_ups_count', 'screen_time_mins', 'weight_kg', 'body_fat_percentage'];
                 numericFields.forEach(f => {
                     const el = document.getElementById(f);
                     if(el) el.value = data[f] ?? '';
                 });
                 
-                // Time Pickers (Fallback cleanly if stored as simple numbers or empty)
                 document.getElementById('sleep_time_picker').value = typeof data.total_night_sleep_hours === 'string' ? data.total_night_sleep_hours.substring(0,5) : '';
                 document.getElementById('wakeup_time_picker').value = typeof data.afternoon_nap_mins === 'string' ? data.afternoon_nap_mins.substring(0,5) : '';
 
-                // Simple Checkboxes
                 document.getElementById('dahi_intake').checked = truthyCheckbox(data.dahi_intake);
                 document.getElementById('protein_checked').checked = truthyCheckbox(data.protein_checked);
                 document.getElementById('morning_breathing').checked = truthyCheckbox(data.morning_breathing);
                 
-                // Converted Checkboxes (Safely map legacy database integer flags to checkboxes)
                 document.getElementById('pooja_jal_box').checked = truthyCheckbox(data.pooja_jal_count);
                 document.getElementById('book_reading_box').checked = truthyCheckbox(data.book_reading_mins);
             } else {
@@ -214,20 +212,19 @@
             e.preventDefault();
             const targetDate = datePicker.value;
             
-            // Build uniform submission map matching existing database columns
             const payload = {
                 log_date: targetDate,
                 water_liters: parseFloat(document.getElementById('water_liters').value) || 0,
                 roti_count: parseInt(document.getElementById('roti_count').value) || 0,
                 bread_slices: parseInt(document.getElementById('bread_slices').value) || 0,
                 steps_count: parseInt(document.getElementById('steps_count').value) || 0,
+                stairs_count: parseInt(document.getElementById('stairs_count').value) || 0,
                 swim_mins: parseInt(document.getElementById('swim_mins').value) || 0,
                 plank_seconds: parseInt(document.getElementById('plank_seconds').value) || 0,
                 crunches_count: parseInt(document.getElementById('crunches_count').value) || 0,
                 sit_ups_count: parseInt(document.getElementById('sit_ups_count').value) || 0,
                 screen_time_mins: parseInt(document.getElementById('screen_time_mins').value) || 0,
                 
-                // Keep database types accurate by saving text-time vectors or fallbacks
                 total_night_sleep_hours: document.getElementById('sleep_time_picker').value || null,
                 afternoon_nap_mins: document.getElementById('wakeup_time_picker').value || null,
 
@@ -235,7 +232,6 @@
                 protein_checked: document.getElementById('protein_checked').checked,
                 morning_breathing: document.getElementById('morning_breathing').checked,
                 
-                // Convert current true/false flags back to numeric integers for legacy column sync
                 pooja_jal_count: document.getElementById('pooja_jal_box').checked ? 1 : 0,
                 book_reading_mins: document.getElementById('book_reading_box').checked ? 15 : 0
             };
@@ -313,28 +309,4 @@
                 const days = Math.floor(difference / (1000 * 60 * 60 * 24));
                 document.getElementById('countdown').innerText = `${days} Days`;
             } else {
-                document.getElementById('countdown').innerText = "Milestone Met! 🎂";
-            }
-        }
-
-        async function exportToExcel() {
-            let { data } = await supabase.from('health_dashboard').select('*').order('log_date', { ascending: false });
-            if(!data || data.length === 0) return alert("No data recorded to export.");
-            const headers = Object.keys(data[0]).join(",");
-            const rows = data.map(row => Object.values(row).map(val => typeof val === 'string' && val.includes(',') ? `"${val}"` : val).join(","));
-            const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Health_Logs_Export_${new Date().toLocaleDateString()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        updateCountdown();
-        loadDayData();
-        renderCharts();
-    </script>
-</body>
-</html>
+                document.getElementById('countdown').
