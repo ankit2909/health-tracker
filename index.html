@@ -3,155 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>39th Birthday Health Dashboard</title>
-    <!-- Tailwind CSS for clean, modern mobile styling -->
+    <title>Ultimate Health Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen font-sans pb-10">
+<body class="bg-gray-900 text-gray-100 min-h-screen pb-12 font-sans">
 
-    <!-- Header Section -->
-    <header class="bg-gray-800 p-5 shadow-md border-b border-gray-700 text-center">
-        <h1 class="text-2xl font-bold text-emerald-400">Road to 80 Kgs</h1>
-        <p class="text-sm text-gray-400 mt-1">Consistency Over Perfection</p>
-        
-        <!-- Countdown Timer to Sept 29, 2026 -->
-        <div class="mt-4 bg-gray-900/60 rounded-lg p-3 inline-block border border-gray-700">
-            <span id="countdown" class="text-xl font-mono text-amber-400 font-bold">---</span>
-            <span class="text-xs text-gray-400 block mt-1">Days until your 39th Birthday Milestone</span>
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 p-4 sticky top-0 z-50 shadow-md">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-emerald-400">Target 80 Kgs Dashboard</h1>
+                <p class="text-xs text-gray-400">Road to 39th Birthday (Sept 29, 2026)</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <input type="date" id="logDatePicker" class="bg-gray-700 border border-gray-600 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-emerald-500">
+                <button onclick="exportToExcel()" class="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold px-3 py-2 rounded-lg text-xs tracking-wider uppercase transition">
+                    📥 Export Excel
+                </button>
+            </div>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto px-4 mt-6 space-y-6">
-
-        <!-- Quick Entry Form -->
-        <section class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700">
-            <h2 class="text-lg font-semibold mb-4 text-emerald-400 flex items-center gap-2">
-                <span>📝</span> Nightly Log (60-Sec Check-in)
-            </h2>
-            <form id="healthForm" class="space-y-4">
-                <!-- Weight Input (Optional Daily/Weekly) -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Current Weight (kg)</label>
-                    <input type="number" id="weight" step="0.1" placeholder="e.g., 96.2" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500">
-                </div>
-
-                <!-- Steps Input -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Steps (from iPhone Health)</label>
-                    <input type="number" id="steps" required placeholder="e.g., 5500" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500">
-                </div>
-
-                <!-- Screen Time Input -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">YouTube / Screen Time (Hours)</label>
-                    <input type="number" id="screenTime" step="0.1" required placeholder="e.g., 2.5" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500">
-                </div>
-
-                <!-- Water Intake -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Water Intake</label>
-                    <select id="water" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500">
-                        <option value="1">1 Liter (Hydrate more!)</option>
-                        <option value="2">2 Liters (Getting there)</option>
-                        <option value="3" selected>3 Liters (Optimal Target)</option>
-                        <option value="4">4 Liters (Excellent)</option>
-                    </select>
-                </div>
-
-                <!-- Midnight Snacking Toggle -->
-                <div class="flex items-center justify-between p-3 bg-gray-900 rounded-lg border border-gray-700">
+    <main class="max-w-4xl mx-auto px-4 mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- FORM INTERFACE (2 Columns on Desktop) -->
+        <form id="metricsForm" class="md:col-span-2 space-y-6">
+            
+            <!-- DIET -->
+            <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 space-y-4">
+                <h2 class="text-md font-bold text-emerald-400 border-b border-gray-700 pb-2 flex justify-between">
+                    <span>🥗 Diet & Intake</span>
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <span class="block text-sm font-medium">Midnight Snacking</span>
-                        <span class="text-xs text-gray-400">Did you eat after dinner last night?</span>
+                        <label class="block text-xs text-gray-400 mb-1">Water (Liters)</label>
+                        <input type="number" id="water_liters" step="0.1" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
                     </div>
-                    <input type="checkbox" id="snacking" class="w-6 h-6 rounded text-emerald-500 focus:ring-0 bg-gray-800 border-gray-700">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Roti Counter</label>
+                        <input type="number" id="roti_count" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Bread Slices</label>
+                        <input type="number" id="bread_slices" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div class="flex flex-col justify-end space-y-2">
+                        <label class="flex items-center gap-2 text-xs text-gray-300"><input type="checkbox" id="midnight_snack" class="w-4 h-4"> Midnight Snacking 🌙</label>
+                        <label class="flex items-center gap-2 text-xs text-gray-300"><input type="checkbox" id="junk_food" class="w-4 h-4"> Junk Food Eaten 🍔</label>
+                    </div>
                 </div>
-
-                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-bold py-3 rounded-lg transition duration-200 shadow-md">
-                    Save Daily Entry
-                </button>
-            </form>
-        </section>
-
-        <!-- Dynamic History Logs -->
-        <section class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700">
-            <h2 class="text-lg font-semibold mb-3 text-emerald-400">📊 Recent Progress Logs</h2>
-            <div id="logsContainer" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-                <!-- Logs dynamically inserted here -->
-                <p class="text-gray-500 text-sm italic text-center py-4">No entries logged yet. Start tonight!</p>
+                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-700/50">
+                    <label class="flex flex-col items-center p-2 bg-gray-900 rounded text-[11px] text-center"><input type="checkbox" id="dahi_intake" class="mb-1"> Dahi</label>
+                    <label class="flex flex-col items-center p-2 bg-gray-900 rounded text-[11px] text-center"><input type="checkbox" id="morning_dryfruit" class="mb-1"> Dryfruits</label>
+                    <label class="flex flex-col items-center p-2 bg-gray-900 rounded text-[11px] text-center"><input type="checkbox" id="herbal_medicine" class="mb-1"> Medicine</label>
+                </div>
+                <label class="flex items-center justify-center gap-2 text-xs bg-emerald-950/40 p-2 border border-emerald-800/40 rounded text-emerald-300">
+                    <input type="checkbox" id="protein_checked" class="w-4 h-4"> anchored meals with clean protein (Eggs/Paneer/Tofu)
+                </label>
             </div>
-        </section>
+
+            <!-- EXERCISE & PHYSICAL -->
+            <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 space-y-4">
+                <h2 class="text-md font-bold text-emerald-400 border-b border-gray-700 pb-2">🏃‍♂️ Physical Exercise & Vitals</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Steps Count</label>
+                        <input type="number" id="steps_count" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Swim Mins</label>
+                        <input type="number" id="swim_mins" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Plank Seconds</label>
+                        <input type="number" id="plank_seconds" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Crunches</label>
+                        <input type="number" id="crunches_count" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Sit Ups</label>
+                        <input type="number" id="sit_ups_count" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Stretching Mins</label>
+                        <input type="number" id="morning_stretching_mins" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-700">
+                    <div>
+                        <label class="block text-xs text-rose-400 mb-1">Back Pain Level (1-5)</label>
+                        <input type="number" id="back_pain_score" min="1" max="5" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-cyan-400 mb-1">Stamina Level (1-5)</label>
+                        <input type="number" id="stamina_score" min="1" max="5" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLEEP & SPIRITUAL -->
+            <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 space-y-4">
+                <h2 class="text-md font-bold text-emerald-400 border-b border-gray-700 pb-2">🧘‍♂️ Sleep & Mental Well-being</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Total Night Sleep (Hrs)</label>
+                        <input type="number" step="0.1" id="total_night_sleep_hours" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Afternoon Nap (Mins)</label>
+                        <input type="number" id="afternoon_nap_mins" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Pooja / Jal Counter</label>
+                        <input type="number" id="pooja_jal_count" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Book Reading (Mins)</label>
+                        <input type="number" id="book_reading_mins" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-amber-400 mb-1">YouTube / Screen Time (Mins)</label>
+                        <input type="number" id="screen_time_mins" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div class="flex items-center pt-4">
+                        <label class="flex items-center gap-2 text-xs text-gray-300"><input type="checkbox" id="morning_breathing" class="w-4 h-4"> Morning Pranayam/Breathing</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEIGHT & FAT (WEEKLY) -->
+            <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 space-y-4">
+                <h2 class="text-md font-bold text-emerald-400 border-b border-gray-700 pb-2">⚖️ Weekly Composition</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Weight (kg)</label>
+                        <input type="number" step="0.1" id="weight_kg" placeholder="e.g. 96.2" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Body Fat %</label>
+                        <input type="number" step="0.1" id="body_fat_percentage" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-bold py-3 rounded-xl transition shadow-lg text-sm uppercase tracking-wider">
+                Save Logistics for Selected Day
+            </button>
+        </form>
+
+        <!-- VISUALS & CHARTS SIDEBAR -->
+        <div class="space-y-6">
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Weight Progression (kg)</h3>
+                <canvas id="weightChart"></canvas>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Activity vs Back Pain</h3>
+                <canvas id="exerciseChart"></canvas>
+            </div>
+        </div>
     </main>
 
-    <!-- App Logic -->
     <script>
-        // 1. Calculate Countdown to Sept 29, 2026
-        function updateCountdown() {
-            const targetDate = new Date('2026-09-29T00:00:00');
-            const now = new Date();
-            const difference = targetDate - now;
+        // --- PROVIDE YOUR SUPABASE CONFIG HERE ---
+        const SUPABASE_URL = "https://uwnhvawonyfoojgzkkyd.supabase.co/rest/v1/";
+        const SUPABASE_ANON_KEY = "sb_publishable_gBpYH561QhhJH2J14CGu0g_8y3I2zVw";
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            if (difference > 0) {
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                document.getElementById('countdown').innerText = `${days} Days Left`;
+        const datePicker = document.getElementById('logDatePicker');
+        const form = document.getElementById('metricsForm');
+        
+        // Default to local date strings safely
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        datePicker.value = todayStr;
+
+        // Load data whenever the date changes
+        datePicker.addEventListener('change', loadDayData);
+        form.addEventListener('submit', saveData);
+
+        let weightChart, exerciseChart;
+
+        async function loadDayData() {
+            const selectedDate = datePicker.value;
+            let { data, error } = await supabase
+                .from('health_dashboard')
+                .select('*')
+                .eq('log_date', selectedDate)
+                .single();
+
+            if (data) {
+                // Populate text/number entries
+                const fields = ['water_liters', 'roti_count', 'bread_slices', 'steps_count', 'swim_mins', 'plank_seconds', 'crunches_count', 'sit_ups_count', 'morning_stretching_mins', 'back_pain_score', 'stamina_score', 'total_night_sleep_hours', 'afternoon_nap_mins', 'pooja_jal_count', 'book_reading_mins', 'screen_time_mins', 'weight_kg', 'body_fat_percentage'];
+                fields.forEach(f => document.getElementById(f).value = data[f] ?? '');
+                
+                // Populate checkboxes
+                const checks = ['midnight_snack', 'junk_food', 'dahi_intake', 'morning_dryfruit', 'herbal_medicine', 'protein_checked', 'morning_breathing'];
+                checks.forEach(c => document.getElementById(c).checked = data[c] ?? false);
             } else {
-                document.getElementById('countdown').innerText = "Happy 39th Birthday! 🎂";
+                form.reset();
             }
         }
 
-        // 2. LocalStorage Data Management
-        const form = document.getElementById('healthForm');
-        const logsContainer = document.getElementById('logsContainer');
-
-        form.addEventListener('submit', (e) => {
+        async function saveData(e) {
             e.preventDefault();
-
-            const entry = {
-                date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-                weight: document.getElementById('weight').value || 'N/A',
-                steps: parseInt(document.getElementById('steps').value),
-                screenTime: parseFloat(document.getElementById('screenTime').value),
-                water: document.getElementById('water').value,
-                snacking: document.getElementById('snacking').checked
+            const targetDate = datePicker.value;
+            
+            const payload = {
+                log_date: targetDate,
+                water_liters: parseFloat(document.getElementById('water_liters').value) || 0,
+                roti_count: parseInt(document.getElementById('roti_count').value) || 0,
+                bread_slices: parseInt(document.getElementById('bread_slices').value) || 0,
+                steps_count: parseInt(document.getElementById('steps_count').value) || 0,
+                swim_mins: parseInt(document.getElementById('swim_mins').value) || 0,
+                plank_seconds: parseInt(document.getElementById('plank_seconds').value) || 0,
+                crunches_count: parseInt(document.getElementById('crunches_count').value) || 0,
+                sit_ups_count: parseInt(document.getElementById('sit_ups_count').value) || 0,
+                morning_stretching_mins: parseInt(document.getElementById('morning_stretching_mins').value) || 0,
+                back_pain_score: parseInt(document.getElementById('back_pain_score').value) || 1,
+                stamina_score: parseInt(document.getElementById('stamina_score').value) || 1,
+                total_night_sleep_hours: parseFloat(document.getElementById('total_night_sleep_hours').value) || 0,
+                afternoon_nap_mins: parseInt(document.getElementById('afternoon_nap_mins').value) || 0,
+                pooja_jal_count: parseInt(document.getElementById('pooja_jal_count').value) || 0,
+                book_reading_mins: parseInt(document.getElementById('book_reading_mins').value) || 0,
+                screen_time_mins: parseInt(document.getElementById('screen_time_mins').value) || 0,
+                
+                midnight_snack: document.getElementById('midnight_snack').checked,
+                junk_food: document.getElementById('junk_food').checked,
+                dahi_intake: document.getElementById('dahi_intake').checked,
+                morning_dryfruit: document.getElementById('morning_dryfruit').checked,
+                herbal_medicine: document.getElementById('herbal_medicine').checked,
+                protein_checked: document.getElementById('protein_checked').checked,
+                morning_breathing: document.getElementById('morning_breathing').checked,
             };
 
-            // Save to array in localStorage
-            let history = JSON.parse(localStorage.getItem('healthHistory')) || [];
-            // Keep entries unique by date
-            history = history.filter(h => h.date !== entry.date);
-            history.unshift(entry); // Add new entry to the top
-            localStorage.setItem('healthHistory', JSON.stringify(history));
+            const w = document.getElementById('weight_kg').value;
+            const f = document.getElementById('body_fat_percentage').value;
+            if(w) payload.weight_kg = parseFloat(w);
+            if(f) payload.body_fat_percentage = parseFloat(f);
 
-            form.reset();
-            document.getElementById('water').value = "3"; // Reset to default target
-            renderLogs();
-        });
-
-        function renderLogs() {
-            const history = JSON.parse(localStorage.getItem('healthHistory')) || [];
-            if (history.length === 0) return;
-
-            logsContainer.innerHTML = history.map(entry => `
-                <div class="bg-gray-900 p-3 rounded-lg border ${entry.steps < 4000 ? 'border-red-500/40' : 'border-gray-700'} text-sm space-y-1">
-                    <div class="flex justify-between font-bold text-gray-300 border-b border-gray-800 pb-1 mb-1">
-                        <span>📅 ${entry.date}</span>
-                        <span class="${entry.snacking ? 'text-rose-400' : 'text-emerald-400'}">
-                            ${entry.snacking ? '🌙 Snacked' : '🔥 Clean Night'}
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-y-1 text-xs text-gray-400">
-                        <div>Weight: <span class="text-gray-200 font-medium">${entry.weight} kg</span></div>
-                        <div>Steps: <span class="text-gray-200 font-medium ${entry.steps >= 7000 ? 'text-emerald-400' : ''}">${entry.steps.toLocaleString()}</span></div>
-                        <div>Screen Time: <span class="text-gray-200 font-medium">${entry.screenTime} hrs</span></div>
-                        <div>Water: <span class="text-gray-200 font-medium">${entry.water}L</span></div>
-                    </div>
-                </div>
-            `).join('');
+            const { error } = await supabase.from('health_dashboard').upsert(payload, { onConflict: 'log_date' });
+            if (error) alert("Save Error: " + error.message);
+            else {
+                alert("Saved safely to cloud database!");
+                renderCharts();
+            }
         }
 
-        // Initialize App
-        updateCountdown();
-        renderLogs();
+        async function renderCharts() {
+            let { data } = await supabase.from('health_dashboard').select('log_date, weight_kg, steps_count, back_pain_score').order('log_date', { ascending: true });
+            if (!data || data.length === 0) return;
+
+            const dates = data.map(d => d.log_date);
+            
+            // Weight Chart
+            if(weightChart) weightChart.destroy();
+            weightChart = new Chart(document.getElementById('weightChart'), {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{ label: 'Weight (kg)', data: data.map(d => d.weight_kg), borderColor: '#34d399', tension: 0.2, spanGaps: true }]
+                },
+                options: { scales: { y: { grid: { color: '#374151' } } } }
+            });
+
+            // Steps vs Pain Chart
+            if(exerciseChart) exerciseChart.destroy();
+            exerciseChart = new Chart(document.getElementById('exerciseChart'), {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        { type: 'bar', label: 'Steps', data: data.map(d => d.steps_count), backgroundColor: '#38bdf8' },
+                        { type: 'line', label: 'Back Pain (1-5)', data: data.map(d => d.back_pain_score), borderColor: '#f87171', yAxisID: 'y1' }
+                    ]
+                },
+                options: { scales: { y1: { position: 'right', min: 1, max: 5 } } }
+            });
+        }
+
+        async function exportToExcel() {
+            let { data } = await supabase.from('health_dashboard').select('*').order('log_date', { ascending: false });
+            if(!data || data.length === 0) return alert("No data recorded to export.");
+
+            const headers = Object.keys(data[0]).join(",");
+            const rows = data.map(row => Object.values(row).map(val => typeof val === 'string' && val.includes(',') ? `"${val}"` : val).join(","));
+            const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Health_Logs_Export_${new Date().toLocaleDateString()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize
+        loadDayData();
+        renderCharts();
     </script>
 </body>
 </html>
